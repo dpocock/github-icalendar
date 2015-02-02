@@ -85,7 +85,9 @@ def ics_feed():
         log.error("No configuration available")
         return flask.Response(status_code=500, status='Missing configuration')
 
-    github_client = github.Github(conf['api_token'])
+    github_client = github.Github(
+            conf['api_token'],
+            user_agent='Github-iCalendar')
     cal = icalendar.Calendar()
     cal.add('prodid', '-//danielpocock.com//GithubIssueFeed//')
     cal.add('version', '1.0')
