@@ -38,6 +38,7 @@ def setup_logging():
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     console_out.setFormatter(formatter)
     log.addHandler(console_out)
+    #github.enable_console_debug_logging()
 
 def display(cal):
     return cal.to_ical().replace('\r\n', '\n').strip()
