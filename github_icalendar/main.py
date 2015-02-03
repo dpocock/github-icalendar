@@ -52,6 +52,25 @@ def make_title(repo_title, issue):
 def make_reporter(issue):
     return "%s@users.github.com" % issue.user.login
 
+def make_todo(issue, repo_title = None):
+    if repo_title is None:
+        repo_title = issue.repository.name
+    try:
+        todo = icalendar.Todo()
+        todo['uid'] = make_uid(issue)
+        todo['summary'] = make_title(repo_title, issue)
+        todo['description'] = issue.body
+        todo['url'] = issue.html_url
+        todo['created'] = issue.created_at
+        todo['last-modified'] = issue.updated_at
+        todo['status'] = 'NEEDS-ACTION'
+        todo['organizer'] = make_reporter(issue)
+        return todo
+
+    except Exception:
+        log.error("Failed to parse %r", t, exc_info=True)
+        return None
+
 def fetch_issues_by_repo(github_client, repo_name):
 
     repo_name_parts = repo_name.split('/')
@@ -60,22 +79,26 @@ def fetch_issues_by_repo(github_client, repo_name):
 
     items = []
     for issue in repo.get_issues(state='open'):
-        try:
-            todo = icalendar.Todo()
-            todo['uid'] = make_uid(issue)
-            todo['summary'] = make_title(repo_title, issue)
-            todo['description'] = issue.body
-            todo['url'] = issue.html_url
-            todo['created'] = issue.created_at
-            todo['last-modified'] = issue.updated_at
-            todo['status'] = 'NEEDS-ACTION'
-            todo['organizer'] = make_reporter(issue)
-            items.append(todo)
-
-        except Exception:
-            log.error("Failed to parse %r", t, exc_info=True)
+        todo = make_todo(issue, repo_title)
+        if todo is None:
             return None
+        items.append(todo)
+    log.debug("Found %d items" % len(items))
     return items
+
+def fetch_issues(github_client, filter):
+    items = []
+    try:
+        for issue in github_client.get_user().get_issues(state='open', filter=filter):
+            todo = make_todo(issue)
+            if todo is None:
+                return None
+            items.append(todo)
+        log.debug("Found %d items" % len(items))
+        return items
+    except Exception:
+        log.error("Failed to fetch %r", t, exc_info=True)
+        return None
 
 app = flask.Flask(__name__)
 conf = None
@@ -92,10 +115,25 @@ def ics_feed():
     cal = icalendar.Calendar()
     cal.add('prodid', '-//danielpocock.com//GithubIssueFeed//')
     cal.add('version', '1.0')
-    for repo_details in conf['repositories']:
-        repo_name = repo_details['repository']
-        log.debug("trying repository: %s" % (repo_name))
-        items = fetch_issues_by_repo(github_client, repo_name)
+    if 'repositories' in conf:
+        log.debug("Using configured repository list")
+        for repo_details in conf['repositories']:
+            repo_name = repo_details['repository']
+            log.debug("trying repository: %s" % (repo_name))
+            items = fetch_issues_by_repo(github_client, repo_name)
+            if items is None:
+                log.error("Error parsing Github data for %s" % repo_name)
+                return flask.Response(status_code=500,
+                    status='Error parsing Github data')
+            for item in items:
+                cal.add_component(item)
+    else:
+        log.debug("Fetching issues for all of the repositories")
+        if 'filter' in conf:
+            filter = conf['filter']
+        else:
+            filter = 'all'
+        items = fetch_issues(github_client, filter)
         if items is None:
             log.error("Error parsing Github data for %s" % repo_name)
             return flask.Response(status_code=500,

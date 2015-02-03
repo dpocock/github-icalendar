@@ -21,9 +21,25 @@ Create a configuration file, for example:
     api_token: 6b36b3d7579d06c9f8e88bc6fb33864e4765e5fac4a3c2fd1bc33aad
     bind_address: ::0
     bind_port: 5000
+    filter: all
+
+By default, you will see todo items for open issues in all repositories
+that you have access to.  If you want to limit the list to specific
+repositories, list them in the configuration file and any others will
+be ignored:
+
+    api_token: 6b36b3d7579d06c9f8e88bc6fb33864e4765e5fac4a3c2fd1bc33aad
+    bind_address: ::0
+    bind_port: 5000
+    filter: all
     repositories:
     - repository: your-user-name/your-project
     - repository: your-user-name/another-project
+
+The `filter` parameter has the same meaning as the `filter` parameter
+in the [Github issues API](https://developer.github.com/v3/issues/)
+although if it is not specified, Github-iCalendar uses `all` as the
+default.
 
 Start the process:
 
