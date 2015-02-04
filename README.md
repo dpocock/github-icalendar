@@ -6,6 +6,17 @@ iCalendar feed of VTODO items.
 
 [Official repository](https://github.com/dpocock/github-icalendar/)
 
+Would you like to see native iCalendar support in Github?
+---------------------------------------------------------
+
+Although it is not hard to download this script and run it yourself,
+you may prefer to connect directly to https://api.github.com with
+your favourite iCalendar client.
+
+[Contact Github support](mailto:support@github.com?subject=Github+iCalendar)
+and click the Star button on the page for this project to register your
+vote for native iCalendar support in the Github API.
+
 Usage
 -----
 
