@@ -6,6 +6,11 @@ iCalendar feed of VTODO items.
 
 [Official repository](https://github.com/dpocock/github-icalendar/)
 
+Github iCalendar is written in Python and uses the
+[Flask](http://flask.pocoo.org/) micro web application framework. 
+If you'd prefer a PHP based solution, a clone of this script written in 
+PHP is available [here](https://github.com/gpolitis/php-github-icalendar/).
+
 Would you like to see native iCalendar support in Github?
 ---------------------------------------------------------
 
